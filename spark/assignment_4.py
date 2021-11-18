@@ -45,6 +45,7 @@ if __name__ == "__main__":
     # Top-10 users with most posts in 2 minutes
 
     users_df = lines.select("timestamp", "author") \
+        .withWatermark('timestamp', "2 minutes") \
         .groupBy(window("timestamp", "2 minutes", "1 minute"), "author").count() \
         .withColumn("start", col("window")["start"]) \
         .withColumn("end", col("window")["end"]) \
@@ -73,12 +74,22 @@ if __name__ == "__main__":
     # cleaned_df = cleaned_df.filter(cleaned_df.end < cleaned_df.current_timestamp) \
     #     .orderBy('window', 'count', ascending=False).limit(10)
 
+    # {'window': Row(start=datetime.datetime(2021, 11, 18, 21, 34), 
+    #  end=datetime.datetime(2021, 11, 18, 21, 36)), 
+    #  'author': 'stevenyeo123', 'count': 2, 
+    # 'start': datetime.datetime(2021, 11, 18, 21, 34), 
+    # 'end': datetime.datetime(2021, 11, 18, 21, 36),
+    #  'current_timestamp': datetime.datetime(2021, 11, 18, 21, 44, 0, 75000)}
+
     # save to mongo db
     def save(users_df, epoch_id):
-        list_df = map(lambda row: row.asDict(), batchDF.collect())
+        list_df = map(lambda row: row.asDict(), users_df.collect())
         for row in list_df:
+            author = row['author']
+            count = row['count']
             collection = db.users
-            collection.replace_one(list_df, record, upsert=True)
+            collection.update_one({'author': author}, {'$inc': {'count': count}, '$setOnInsert': {k:v for k,v in row.items() if k != "author"}}, upsert=True)
+        
         # users_df.write \
         #     .format("com.mongodb.spark.sql.DefaultSource") \
         #     .mode("append") \
