@@ -88,7 +88,7 @@ if __name__ == "__main__":
             author = row['author']
             count = row['count']
             collection = db.users
-            collection.update_one({'author': author}, {'$inc': {'count': count}, '$setOnInsert': {k:v for k,v in row.items() if k != "author"}}, upsert=True)
+            collection.update_one({'author': author}, {'$inc': {'count': count}, '$set': {k:v for k,v in row.items() if k != "count"}}, upsert=True)
         
         # users_df.write \
         #     .format("com.mongodb.spark.sql.DefaultSource") \

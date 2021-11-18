@@ -32,15 +32,21 @@ def uploadPost(request):
             return JsonResponse({"error": form.errors}, status=400)
 
 def get_post_count(request):
-    labels = []
-    data = []
-
-    print("REQYUEST HERERRERERRER")
+    author_dict = {}
 
     for post in HWZ_Post.objects:
-        print("HEREE", post)
-        labels.append(post.author)
-        data.append(post.count)
+        author_dict[post.author] = post.count
+
+    data = []
+    labels = sorted(author_dict, key=author_dict.get, reverse=True)[:10]
+    for i in labels:
+        data.append(author_dict[i])
+    print(data, labels)
+    
+    # labels.append()
+    # data.append()
+        # labels.append(post.author)
+        # data.append(post.count)
 
     return JsonResponse(data={
         'labels': labels,
