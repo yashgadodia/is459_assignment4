@@ -1,2 +1,2 @@
-# is459_assignment4
-assignment 4
+# SMU-IS459
+This repo is for practice in IS459
